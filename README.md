@@ -1,4 +1,4 @@
-# advance-twitter-client
+# twitter-search-app
 This application is made to demonstrate some advance javascript concepts like prototypal inheritance,generators,promises etc.
 while using Twit library to make connection between app and the twitter API. 
 
