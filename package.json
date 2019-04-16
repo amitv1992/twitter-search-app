@@ -1,0 +1,36 @@
+{
+  "name": "twitter-search-client",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@bit/joshk.jotils.get-random-color": "^1.1.0",
+    "@bit/mhnpd.react-loader-spinner.hearts": "^2.2.0",
+    "@material-ui/core": "^3.9.3",
+    "@material-ui/icons": "^3.0.2",
+    "axios": "^0.18.0",
+    "classnames": "^2.2.6",
+    "material-ui-icons": "^1.0.0-beta.36",
+    "node-sass": "^4.11.0",
+    "prop-types": "latest",
+    "react": "^16.8.6",
+    "react-dom": "^16.8.6",
+    "react-linkify": "^0.2.2",
+    "react-scripts": "2.1.8",
+    "twit": "^2.2.11",
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not ie <= 11",
+    "not op_mini all"
+  ]
+}
