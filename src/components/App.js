@@ -61,7 +61,7 @@ class App extends PureComponent {
                 isLoading:true,
                 latitude: success.coords.latitude,
                 longitude: success.coords.longitude
-            }, () => this.detectCity1())
+            }, () => this.detectCity())
         }, (reject) => {
             console.error("User denied geo position permission");
             this.callTwitterAPI('world');
@@ -72,37 +72,44 @@ class App extends PureComponent {
     }
 
     /**
-     * This method demonstrate the understanding of promises
+     * This method demonstrate the understanding of promises (ES6)
      * It fetches user location detail from the found coordinates from the user agent (browser).
      */
-    // detectCity() {
-    //     console.info("State inside detectCity function : ", this.state);
-    //     axios.get(`https://us1.locationiq.com/v1/reverse.php?key=${apiKey}&lat=${this.state.latitude}&lon=${this.state.longitude}&format=json`, {
-    //         async: true,
-    //         crossDomain: true,
-    //         method: "GET"
-    //     }).then(res => {
-    //         console.info("Detected city is : " + res.data.address.city);
-    //         this.setState({
-    //             userCity: res.data.address.city,
-    //         },)
-    //     }).then(() => this.callTwitterAPI(this.state.userCity));
-    // }
+    detectCity() {
+        let foundCity ='' ;
+        axios.get(`https://us1.locationiq.com/v1/reverse.php?key=${apiKey}&lat=${this.state.latitude}&lon=${this.state.longitude}&format=json`, {
+            async: true,
+            crossDomain: true,
+            method: "GET"
+        }).then( res => { foundCity = res.data.address.city})
+            .catch(() => {foundCity = 'world'})
+            .finally(()=>this.setState({
+                userCity: foundCity,
+            }, () => this.callTwitterAPI(this.state.userCity)));
+    }
 
     /**
-     * This method demonstrate the understanding for using async and await
+     * This method demonstrate the understanding for using async and await (ES8)
      * It fetches user location detail from the found coordinates from the user agent (browser).
      * @returns {Promise<void>}
      */
     async detectCity1() {
-        const response = await axios.get(`https://us1.locationiq.com/v1/reverse.php?key=${apiKey}&lat=${this.state.latitude}&lon=${this.state.longitude}&format=json`, {
-            async: true,
-            crossDomain: true,
-            method: "GET"
-        });
-        this.setState({
-            userCity: response.data.address.city,
-        }, () => this.callTwitterAPI(this.state.userCity))
+        let foundCity ='' ;
+        try{
+            const response = await axios.get(`https://us1.locationiq.com/v1/reverse.php?key=${apiKey}&lat=${this.state.latitude}&lon=${this.state.longitude}&format=json`, {
+                async: true,
+                crossDomain: true,
+                method: "GET"
+            });
+            foundCity = response.data.address.city
+        }catch (e) {
+            foundCity = 'world'
+        }finally {
+            this.setState({
+                userCity: foundCity,
+            }, () => this.callTwitterAPI(this.state.userCity))
+        }
+
     }
 
     resetCoordinates() {

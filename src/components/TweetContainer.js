@@ -67,13 +67,13 @@ class TweetContainer extends React.Component {
     }
 
     componentWillUnmount() {
-        debugger;
+        console.info('Tweet container component will unmount');
         window.removeEventListener('scroll', this.pageEndDetection);
     }
 
     pageEndDetection() {
         if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight) {
-            console.log("you're at the bottom of the page");
+            console.info("you're at the bottom of the page");
             this.generateTweets.next();
             this.generateTweets.next();
             this.generateTweets = this.props.generateTweets();

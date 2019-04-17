@@ -79,7 +79,6 @@ export class Favorites extends Icon {
     }
 
     handleFavouriteClick = (e) => {
-        console.log("clicked fav ",e)
         if(!this.state.favouriteStatus){
             this.setState({
                 favouriteStatus: !this.state.favouriteStatus,

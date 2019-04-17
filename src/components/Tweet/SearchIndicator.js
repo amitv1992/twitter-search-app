@@ -26,8 +26,7 @@ const styles = {
 class SearchIndicator extends React.Component {
 
     componentWillUnmount() {
-        debugger;
-        console.log('Component will unmount');
+        console.info('SearchIndicator component will unmount');
         this.props.resetCoordinates()
     }
 
