@@ -40,7 +40,7 @@ class App extends PureComponent {
      */
     * generateTweets() {
         let tweets = null;
-        yield fetch(`https://twit-be.herokuapp.com/search/${this.state.searchTerm}`).then(res => res.json()).then(values => tweets = values);
+        yield fetch(`https://twit-be.herokuapp.com/search/${this.state.searchTerm}`).then(res => res.json()).then(values => tweets = values).catch(error => {console.log(error);});
         const obj1 = {...this.state.tweets};
 
         if (tweets) {

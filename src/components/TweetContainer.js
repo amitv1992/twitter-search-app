@@ -75,7 +75,6 @@ class TweetContainer extends React.Component {
         if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight) {
             console.info("you're at the bottom of the page");
             this.generateTweets.next();
-            this.generateTweets.next();
             this.generateTweets = this.props.generateTweets();
             this.generateTweets.next();
         }
