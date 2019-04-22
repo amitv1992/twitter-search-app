@@ -80,11 +80,36 @@ class TweetContainer extends React.Component {
         }
     }
 
-    render() {
-        const {classes, tweets} = this.props;
-        const grabbedStatus = tweets && tweets.statuses;
+    renderLoaderIndicator(){
+        return(
+            <div style={{left: '43%', position: 'absolute'}}>
+                <Hearts
+                    color={getRandomColor()}
+                    height={150}
+                    width={150}
+                />
+            </div>
+        )
+    }
 
-        if (grabbedStatus.length) {
+    render() {
+        const {classes, tweets, errorMessage,isLoading} = this.props;
+        const grabbedStatus = tweets && tweets.statuses;
+        if(errorMessage){
+            return (<div style={{position: 'absolute', top: '40%', left: '30%',width: '550px',textAlign:'center'}}>
+                    <Paper className={classes.root} elevation={1}>
+                        <Typography variant="h5" component="h3">
+                            Network error occurred :
+                        </Typography>
+                        <Typography component="p">
+                            {errorMessage}
+                            {'\n Please try again after some time...'}
+                        </Typography>
+                    </Paper>
+                </div>
+            );
+        }
+        if (grabbedStatus && grabbedStatus.length) {
             return (
                 <div className="content" onScroll={this.pageEndDetection}>
                     {
@@ -98,28 +123,24 @@ class TweetContainer extends React.Component {
                             </div>
                         ))
                     }
-                    <div style={{left: '43%', position: 'absolute'}}>
-                        <Hearts
-                            color={getRandomColor()}
-                            height={150}
-                            width={150}
-                        />
-                    </div>
+                    {isLoading && this.renderLoaderIndicator()};
                 </div>
 
             )
+        }else{
+            return (<div style={{position: 'absolute', top: '40%', left: '30%',width: '550px',textAlign:'center'}}>
+                    <Paper className={classes.root} elevation={1}>
+                        <Typography variant="h5" component="h3">
+                            No tweets found :(
+                        </Typography>
+                        <Typography component="p">
+                            Please try another keyword...
+                        </Typography>
+                    </Paper>
+                </div>
+            );
         }
-        return (<div style={{position: 'absolute', top: '40%', left: '30%',width: '550px',textAlign:'center'}}>
-            <Paper className={classes.root} elevation={1}>
-                <Typography variant="h5" component="h3">
-                    No tweets found :(
-                </Typography>
-                <Typography component="p">
-                    Please try another keyword...
-                </Typography>
-            </Paper>
-        </div>
-        );
+
     }
 }
 

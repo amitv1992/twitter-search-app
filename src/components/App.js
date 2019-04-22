@@ -6,6 +6,8 @@ import {getRandomColor} from '@bit/joshk.jotils.get-random-color'
 import SearchBar from "../components/SearchBar";
 import SearchIndicator from "./Tweet/SearchIndicator";
 import TweetContainer from "./TweetContainer";
+import Paper from '@material-ui/core/Paper';
+import Typography from '@material-ui/core/Typography';
 
 
 let apiKey = 'f750d586c2243a';
@@ -39,11 +41,12 @@ class App extends PureComponent {
      * @returns {IterableIterator<*>}
      */
     * generateTweets() {
+        this.setState({ isLoading: true});
         let tweets = null;
         yield fetch(`https://twit-be.herokuapp.com/search/${this.state.searchTerm}`).then(res => res.json()).then(values => tweets = values).catch(error => {console.log(error);});
         const obj1 = {...this.state.tweets};
 
-        if (tweets) {
+        if (tweets && tweets.statuses) {
             for (let i = 0; i < tweets.statuses.length; i++) {
                 obj1.statuses.push(tweets.statuses[i])
             }
@@ -58,7 +61,7 @@ class App extends PureComponent {
         window.navigator.geolocation.getCurrentPosition((success, reject) => {
             console.info("Found User geo position successfully ");
             this.setState({
-                isLoading:true,
+                isLoading: true,
                 latitude: success.coords.latitude,
                 longitude: success.coords.longitude
             }, () => this.detectCity())
@@ -76,15 +79,20 @@ class App extends PureComponent {
      * It fetches user location detail from the found coordinates from the user agent (browser).
      */
     detectCity() {
-        let foundCity ='' ;
+        let foundCity = '';
         axios.get(`https://us1.locationiq.com/v1/reverse.php?key=${apiKey}&lat=${this.state.latitude}&lon=${this.state.longitude}&format=json`, {
             async: true,
             crossDomain: true,
             method: "GET"
-        }).then( res => { foundCity = res.data.address.city})
-            .catch(() => {foundCity = 'world'})
-            .finally(()=>this.setState({
+        }).then(res => {
+            foundCity = res.data.address.city
+        })
+            .catch(() => {
+                foundCity = 'world'
+            })
+            .finally(() => this.setState({
                 userCity: foundCity,
+                searchTerm: foundCity,
             }, () => this.callTwitterAPI(this.state.userCity)));
     }
 
@@ -94,17 +102,17 @@ class App extends PureComponent {
      * @returns {Promise<void>}
      */
     async detectCity1() {
-        let foundCity ='' ;
-        try{
+        let foundCity = '';
+        try {
             const response = await axios.get(`https://us1.locationiq.com/v1/reverse.php?key=${apiKey}&lat=${this.state.latitude}&lon=${this.state.longitude}&format=json`, {
                 async: true,
                 crossDomain: true,
                 method: "GET"
             });
             foundCity = response.data.address.city
-        }catch (e) {
+        } catch (e) {
             foundCity = 'world'
-        }finally {
+        } finally {
             this.setState({
                 userCity: foundCity,
             }, () => this.callTwitterAPI(this.state.userCity))
@@ -125,14 +133,28 @@ class App extends PureComponent {
      */
     callTwitterAPI(newValue) {
         if (newValue) {
+            this.setState({
+                isLoading: true,});
             fetch(`https://twit-be.herokuapp.com/search/${newValue}`)
                 .then(res => res.json())
-                .then(tweets => this.setState({
-                    searchIndicator: true,
-                    searchTerm: newValue,
-                    tweets: tweets,
-                    isLoading: false
-                }));
+                .then(tweets => {
+                    if (tweets.error) {
+                        this.setState({
+                            errorMessage: tweets.msg.message,
+                            isLoading: false
+                        })
+                    } else {
+                        this.setState({
+                            searchIndicator: true,
+                            searchTerm: newValue,
+                            tweets: tweets,
+                            isLoading: false
+                        })
+                    }
+                })
+                .catch(error => {
+                    console.log(error)
+                });
         }
     }
 
@@ -153,12 +175,25 @@ class App extends PureComponent {
      * @returns {*}
      */
     render() {
-        const {tweets, isLoading, userCity} = this.state;
+        const {tweets, isLoading, userCity, errorMessage, searchTerm} = this.state;
         return (
             <div className="parent">
                 <SearchBar userCity={userCity} callTwitterAPI={this.callTwitterAPI.bind(this)}/>
                 {this.renderSearchIndicator()}
                 <div className="tweets-parent">
+                    {errorMessage &&
+                    <div style={{position: 'absolute', top: '40%', left: '30%', width: '550px', textAlign: 'center'}}>
+                            <Paper elevation={1}>
+                                <Typography variant="h5" component="h3">
+                                    Network error occurred :
+                                </Typography>
+                                <Typography component="p">
+                                    {errorMessage}
+                                    {'\n Please try again after some time...'}
+                                </Typography>
+                            </Paper>
+                    </div>
+                    }
                     {isLoading &&
                     <div style={{left: '43%', position: 'absolute'}}>
                         <Hearts
@@ -168,7 +203,7 @@ class App extends PureComponent {
                         />
                     </div>
                     }
-                    {tweets && <TweetContainer tweets={tweets} generateTweets={this.generateTweets.bind(this)}/>}
+                    {tweets && <TweetContainer isLoading={isLoading} tweets={tweets} errorMessage={errorMessage} searchTerm={searchTerm} generateTweets={this.generateTweets.bind(this)}/>}
                 </div>
             </div>
         );
