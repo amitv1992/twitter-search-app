@@ -13,8 +13,8 @@ class TweetFooter extends React.PureComponent {
 
     render() {
         const {tweet, classes} = this.props;
-        let favCount = tweet.favorite_count?tweet.favorite_count: tweet.retweeted_status && tweet.retweeted_status.favorite_count;
-        favCount=favCount?favCount:0;
+        let favCount = tweet.favorite_count ? tweet.favorite_count : tweet.retweeted_status && tweet.retweeted_status.favorite_count;
+        favCount = favCount ? favCount : 0;
         return (
             <div>
                 <CardActions className={classes.actions} disableActionSpacing>

@@ -8,8 +8,7 @@ import red from '@material-ui/core/colors/red';
 import TweetHeader from "./Tweet/TweetHeader";
 import TweetFooter from "./Tweet/TweetFooter";
 import TweetBody from "./Tweet/TweetBody";
-import {Hearts} from '@bit/mhnpd.react-loader-spinner.hearts';
-import {getRandomColor} from "@bit/joshk.jotils.get-random-color";
+import {CellMeasurer, CellMeasurerCache, List} from 'react-virtualized';
 
 const styles = theme => ({
     card: {
@@ -49,54 +48,87 @@ const styles = theme => ({
     },
 });
 
+let cache = new CellMeasurerCache({
+    defaultHeight: 240,
+    fixedWidth: true,
+});
+
 class TweetContainer extends React.Component {
 
     constructor(props) {
         super(props);
-        this.state = {
-            expanded: false
-        };
-        this.pageEndDetection = this.pageEndDetection.bind(this)
+        this.rowRenderer = this.rowRenderer.bind(this);
+        cache.clearAll(); //need to reset old cache copy, when this component gets remount.
     }
 
     componentDidMount() {
-        window.addEventListener('scroll', this.pageEndDetection);
         this.generateTweets = this.props.generateTweets();
-        setTimeout(() => {this.generateTweets.next()},2000);
-
+        setTimeout(() => {
+            this.generateTweets.next()
+        }, 2000);
     }
 
-    componentWillUnmount() {
-        console.info('Tweet container component will unmount');
-        window.removeEventListener('scroll', this.pageEndDetection);
-    }
-
-    pageEndDetection() {
-        if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight) {
-            console.info("you're at the bottom of the page");
+    handleScroll = (e) => {
+        const bottom = e.target.scrollHeight - e.target.scrollTop === e.target.clientHeight;
+        if (bottom) {
+            console.info('Reached bottom of the tweet container');
             this.generateTweets.next();
             this.generateTweets = this.props.generateTweets();
             this.generateTweets.next();
         }
     }
 
-    renderLoaderIndicator(){
-        return(
-            <div style={{left: '43%', position: 'absolute'}}>
-                <Hearts
-                    color={getRandomColor()}
-                    height={150}
-                    width={150}
-                />
-            </div>
+    rowRenderer({
+                    key,         // Unique key within array of rows
+                    index,       // Index of row within collection
+                    isScrolling, // The List is currently being scrolled
+                    isVisible,   // This row is visible within the List (eg it is not an overscanned row)
+                    style,        // Style object to be applied to row (to position it)
+                    parent        // Reference to the parent Grid
+                }) {
+        const {classes, tweets} = this.props;
+        const grabbedStatus = tweets && tweets.statuses;
+        return (
+            <CellMeasurer
+                cache={cache}
+                key={key}
+                parent={parent}
+                rowIndex={index}
+                columnIndex={0}
+            >
+                {({measure}) => (
+                    <div className="tweet" key={key} style={style}>
+                        <Card className={classes.card} key={index}>
+                            <TweetHeader tweet={grabbedStatus[index]} classes={classes}/>
+                            <TweetBody tweet={grabbedStatus[index]} classes={classes}/>
+                            <TweetFooter tweet={grabbedStatus[index]} classes={classes}/>
+                        </Card>
+                    </div>
+                )}
+            </CellMeasurer>
         )
-    }
+    };
+
+    TweetList() {
+        return (<List
+            deferredMeasurementCache={cache}
+            width={document.documentElement.clientWidth}
+            height={document.documentElement.clientHeight}
+            overscanRowsCount={2}
+            rowCount={this.props.tweets.statuses.length}
+            rowHeight={cache.rowHeight}
+            rowRenderer={this.rowRenderer}
+            ref={(list) => {
+                this.list = list
+            }}
+        />)
+    };
 
     render() {
-        const {classes, tweets, errorMessage,isLoading} = this.props;
+        const {classes, tweets, errorMessage} = this.props;
         const grabbedStatus = tweets && tweets.statuses;
-        if(errorMessage){
-            return (<div style={{position: 'absolute', top: '40%', left: '30%',width: '550px',textAlign:'center'}}>
+        if (errorMessage) {
+            return (<div style={{position: 'absolute', top: '40%', left: '30%', width: '550px', textAlign: 'center'}}>
                     <Paper className={classes.root} elevation={1}>
                         <Typography variant="h5" component="h3">
                             Network error occurred :
@@ -111,24 +143,12 @@ class TweetContainer extends React.Component {
         }
         if (grabbedStatus && grabbedStatus.length) {
             return (
-                <div className="content" onScroll={this.pageEndDetection}>
-                    {
-                        grabbedStatus.map((tweet, i) => (
-                            <div className="tweet-content">
-                                <Card className={classes.card} key={i}>
-                                    <TweetHeader tweet={tweet} classes={classes}/>
-                                    <TweetBody tweet={tweet} classes={classes}/>
-                                    <TweetFooter tweet={tweet} classes={classes}/>
-                                </Card>
-                            </div>
-                        ))
-                    }
-                    {isLoading && this.renderLoaderIndicator()};
+                <div id="tweet-content" onScroll={this.handleScroll}>
+                    {this.TweetList()}
                 </div>
-
             )
-        }else{
-            return (<div style={{position: 'absolute', top: '40%', left: '30%',width: '550px',textAlign:'center'}}>
+        } else {
+            return (<div style={{position: 'absolute', top: '40%', left: '30%', width: '550px', textAlign: 'center'}}>
                     <Paper className={classes.root} elevation={1}>
                         <Typography variant="h5" component="h3">
                             No tweets found :(
@@ -140,7 +160,6 @@ class TweetContainer extends React.Component {
                 </div>
             );
         }
-
     }
 }
 

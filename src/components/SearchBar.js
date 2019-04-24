@@ -75,7 +75,7 @@ function updateSearchQuery(props, e) {
 }
 
 function homepageClick(props, e) {
-    if(e.type ==='click'){
+    if (e.type === 'click') {
         props.callTwitterAPI(props.userCity);
     }
 }
@@ -86,7 +86,8 @@ function SearchBar(props) {
         <div className={classes.root}>
             <AppBar position="static">
                 <Toolbar>
-                    <Typography style={{cursor:'pointer'}} className={classes.title} variant="h6" color="inherit" noWrap onClick={ref => homepageClick(props, ref)}>
+                    <Typography style={{cursor: 'pointer'}} className={classes.title} variant="h6" color="inherit"
+                                noWrap onClick={ref => homepageClick(props, ref)}>
                         Twitter Search App
                     </Typography>
                     <div className={classes.grow}/>

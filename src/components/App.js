@@ -41,9 +41,10 @@ class App extends PureComponent {
      * @returns {IterableIterator<*>}
      */
     * generateTweets() {
-        this.setState({ isLoading: true});
         let tweets = null;
-        yield fetch(`https://twit-be.herokuapp.com/search/${this.state.searchTerm}`).then(res => res.json()).then(values => tweets = values).catch(error => {console.log(error);});
+        yield fetch(`https://twit-be.herokuapp.com/megasearch/${this.state.searchTerm}`).then(res => res.json()).then(values => tweets = values).catch(error => {
+            console.log(error);
+        });
         const obj1 = {...this.state.tweets};
 
         if (tweets && tweets.statuses) {
@@ -132,30 +133,34 @@ class App extends PureComponent {
      * @param newValue
      */
     callTwitterAPI(newValue) {
-        if (newValue) {
-            this.setState({
-                isLoading: true,});
-            fetch(`https://twit-be.herokuapp.com/search/${newValue}`)
-                .then(res => res.json())
-                .then(tweets => {
-                    if (tweets.error) {
-                        this.setState({
-                            errorMessage: tweets.msg.message,
-                            isLoading: false
-                        })
-                    } else {
-                        this.setState({
-                            searchIndicator: true,
-                            searchTerm: newValue,
-                            tweets: tweets,
-                            isLoading: false
-                        })
-                    }
-                })
-                .catch(error => {
-                    console.log(error)
-                });
-        }
+        //To rerender the tweet container on new query as virtualised lib, keep the previous scrolled position saved.
+        this.setState({
+            tweets: null,
+            isLoading: true,
+        }, () => {
+            if (newValue) {
+                fetch(`https://twit-be.herokuapp.com/megasearch/${newValue}`)
+                    .then(res => res.json())
+                    .then(tweets => {
+                        if (tweets.error) {
+                            this.setState({
+                                errorMessage: tweets.msg.message,
+                                isLoading: false
+                            })
+                        } else {
+                            this.setState({
+                                searchIndicator: true,
+                                searchTerm: newValue,
+                                tweets: tweets,
+                                isLoading: false
+                            })
+                        }
+                    })
+                    .catch(error => {
+                        console.log(error)
+                    });
+            }
+        })
     }
 
     renderSearchIndicator() {
@@ -164,7 +169,7 @@ class App extends PureComponent {
                 this.setState({searchIndicator: false})
             }, 5000);
             return (<SearchIndicator searchedTerm={this.state.searchTerm} latitude={this.state.latitude}
-                                     longitude={this.state.longitude} resetCoordinates={this.resetCoordinates} />)
+                                     longitude={this.state.longitude} resetCoordinates={this.resetCoordinates}/>)
         } else {
             return null
         }
@@ -183,15 +188,15 @@ class App extends PureComponent {
                 <div className="tweets-parent">
                     {errorMessage &&
                     <div style={{position: 'absolute', top: '40%', left: '30%', width: '550px', textAlign: 'center'}}>
-                            <Paper elevation={1}>
-                                <Typography variant="h5" component="h3">
-                                    Network error occurred :
-                                </Typography>
-                                <Typography component="p">
-                                    {errorMessage}
-                                    {'\n Please try again after some time...'}
-                                </Typography>
-                            </Paper>
+                        <Paper elevation={1}>
+                            <Typography variant="h5" component="h3">
+                                Network error occurred :
+                            </Typography>
+                            <Typography component="p">
+                                {errorMessage}
+                                {'\n Please try again after some time...'}
+                            </Typography>
+                        </Paper>
                     </div>
                     }
                     {isLoading &&
@@ -203,7 +208,9 @@ class App extends PureComponent {
                         />
                     </div>
                     }
-                    {tweets && <TweetContainer isLoading={isLoading} tweets={tweets} errorMessage={errorMessage} searchTerm={searchTerm} generateTweets={this.generateTweets.bind(this)}/>}
+                    {tweets && <TweetContainer isLoading={isLoading} tweets={tweets} errorMessage={errorMessage}
+                                               searchTerm={searchTerm}
+                                               generateTweets={this.generateTweets.bind(this)}/>}
                 </div>
             </div>
         );

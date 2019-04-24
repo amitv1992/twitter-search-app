@@ -10,13 +10,15 @@ class Icon extends React.Component {
     constructor(props) {
         super(props);
         this.iconObj = 'base';
-        this.iconHandler = (e) => { console.log(e)};
+        this.iconHandler = (e) => {
+            console.log(e)
+        };
         this.iconStyles = null;
         this.iconCounter = null;
     }
 
     render() {
-        let icon = React.createElement(this.iconObj,this.iconStyles,null);
+        let icon = React.createElement(this.iconObj, this.iconStyles, null);
         return (
             <IconButton aria-label="actionIcons" onClick={this.iconHandler}>
                 {icon}
@@ -65,9 +67,11 @@ export class Favorites extends Icon {
         this.iconObj = FavoriteIcon;
         this.iconHandler = this.handleFavouriteClick;
     }
+
     componentDidMount() {
-        this.setState({favouriteCount :this.props.FavouriteCount});
+        this.setState({favouriteCount: this.props.FavouriteCount});
     }
+
     renderFavouriteButton() {
         if (this.state.favouriteStatus) {
             this.iconObj = FavoriteIcon;
@@ -79,25 +83,26 @@ export class Favorites extends Icon {
     }
 
     handleFavouriteClick = (e) => {
-        if(!this.state.favouriteStatus){
+        if (!this.state.favouriteStatus) {
             this.setState({
                 favouriteStatus: !this.state.favouriteStatus,
-                favouriteCount : this.state.favouriteCount+1
+                favouriteCount: this.state.favouriteCount + 1,
             })
-        }else{
+        } else {
             this.setState({
                 favouriteStatus: !this.state.favouriteStatus,
-                favouriteCount : this.state.favouriteCount-1
+                favouriteCount: this.state.favouriteCount - 1,
             })
         }
     };
 
     render() {
-        this.iconCounter=this.state.favouriteCount;
+        this.iconCounter = this.state.favouriteCount;
         this.renderFavouriteButton();
         return super.render();
     }
 }
+
 export class PM extends Icon {
     constructor(props) {
         super(props);

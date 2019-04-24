@@ -7,7 +7,7 @@ import CardMedia from '@material-ui/core/CardMedia';
 import ReTweetModal from "../ReTweetModal";
 
 const propType = {
-    tweet: PropTypes.array.isRequired,
+    tweet: PropTypes.object.isRequired,
     classes: PropTypes.object.isRequired,
 };
 

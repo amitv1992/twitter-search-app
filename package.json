@@ -16,6 +16,7 @@
     "react-dom": "^16.8.6",
     "react-linkify": "^0.2.2",
     "react-scripts": "2.1.8",
+    "react-virtualized": "^9.21.0",
     "twit": "^2.2.11"
   },
   "scripts": {
