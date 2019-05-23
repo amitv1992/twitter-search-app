@@ -1,20 +1,15 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {withStyles} from '@material-ui/core/styles';
+import { connect } from "react-redux";
+import { resetCoordinates } from "../../actions";
+import { withStyles } from '@material-ui/core/styles';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 
 const propType = {
     resetCoordinates: PropTypes.func.isRequired,
-    searchedTerm: PropTypes.string.isRequired,
     classes: PropTypes.object.isRequired,
-};
-
-const defaultProps = {
-    searchedTerm: null,
-    latitude: null,
-    longitude: null,
 };
 
 const styles = {
@@ -35,25 +30,25 @@ class SearchIndicator extends React.Component {
      * @returns {*}
      */
     renderSearchIndicatorText() {
-        const {searchedTerm, latitude, longitude} = this.props;
-        if (searchedTerm && latitude && longitude) {
+        const { searchTerm, latitude, longitude } = this.props.state.appDataReducer;
+        if (searchTerm && latitude && longitude) {
             return (
                 <AppBar position="static" color="default" style={{height: 30}}>
                     <Toolbar>
                         <Typography color="inherit" style={{position: 'absolute', top: 4}}>
-                            We have successfully detected your city as <b>{searchedTerm}</b> and lets see what is
+                            We have successfully detected your city as <b>{searchTerm}</b> and lets see what is
                             happening there.
                         </Typography>
                     </Toolbar>
                 </AppBar>
             )
         }
-        if (searchedTerm && !latitude && !longitude) {
+        if (searchTerm && !latitude && !longitude) {
             return (
                 <AppBar position="static" color="default" style={{height: 30}}>
                     <Toolbar>
                         <Typography color="inherit" style={{position: 'absolute', top: 4}}>
-                            You have searched for : {searchedTerm}
+                            You are searching for : {searchTerm}
                         </Typography>
                     </Toolbar>
                 </AppBar>
@@ -72,6 +67,14 @@ class SearchIndicator extends React.Component {
 }
 
 SearchIndicator.propTypes = propType;
-SearchIndicator.defaultProps = defaultProps;
 
-export default withStyles(styles)(SearchIndicator);
+const mapStateToProps = (state) => {
+    console.info("STATE INFO FROM SEARCH INDICATOR: ", state);
+    return {state: state};
+};
+const mapDispatchToProps = {
+    resetCoordinates
+
+};
+const styledComponent = withStyles(styles)(SearchIndicator);
+export default connect(mapStateToProps, mapDispatchToProps)(styledComponent);

@@ -1,4 +1,6 @@
 import React from 'react';
+import { connect } from "react-redux";
+import { CellMeasurer, CellMeasurerCache, List } from 'react-virtualized';
 import PropTypes from 'prop-types';
 import {withStyles} from '@material-ui/core/styles';
 import Card from '@material-ui/core/Card';
@@ -8,7 +10,7 @@ import red from '@material-ui/core/colors/red';
 import TweetHeader from "./Tweet/TweetHeader";
 import TweetFooter from "./Tweet/TweetFooter";
 import TweetBody from "./Tweet/TweetBody";
-import {CellMeasurer, CellMeasurerCache, List} from 'react-virtualized';
+import { fetchTweetsOnScroll } from "../actions";
 
 const styles = theme => ({
     card: {
@@ -58,6 +60,7 @@ class TweetContainer extends React.Component {
     constructor(props) {
         super(props);
         this.rowRenderer = this.rowRenderer.bind(this);
+        this.handleScroll = this.handleScroll.bind(this);
         cache.clearAll(); //need to reset old cache copy, when this component gets remount.
     }
 
@@ -76,7 +79,7 @@ class TweetContainer extends React.Component {
             this.generateTweets = this.props.generateTweets();
             this.generateTweets.next();
         }
-    }
+    };
 
     rowRenderer({
                     key,         // Unique key within array of rows
@@ -86,7 +89,8 @@ class TweetContainer extends React.Component {
                     style,        // Style object to be applied to row (to position it)
                     parent        // Reference to the parent Grid
                 }) {
-        const {classes, tweets} = this.props;
+        const {classes} = this.props;
+        const { tweets} = this.props.state;
         const grabbedStatus = tweets && tweets.statuses;
         return (
             <CellMeasurer
@@ -115,7 +119,7 @@ class TweetContainer extends React.Component {
             width={document.documentElement.clientWidth}
             height={document.documentElement.clientHeight}
             overscanRowsCount={2}
-            rowCount={this.props.tweets.statuses.length}
+            rowCount={this.props.state.tweets.statuses.length}
             rowHeight={cache.rowHeight}
             rowRenderer={this.rowRenderer}
             ref={(list) => {
@@ -125,22 +129,9 @@ class TweetContainer extends React.Component {
     };
 
     render() {
-        const {classes, tweets, errorMessage} = this.props;
+        const { classes } = this.props;
+        const { tweets } = this.props.state;
         const grabbedStatus = tweets && tweets.statuses;
-        if (errorMessage) {
-            return (<div style={{position: 'absolute', top: '40%', left: '30%', width: '550px', textAlign: 'center'}}>
-                    <Paper className={classes.root} elevation={1}>
-                        <Typography variant="h5" component="h3">
-                            Network error occurred :
-                        </Typography>
-                        <Typography component="p">
-                            {errorMessage}
-                            {'\n Please try again after some time...'}
-                        </Typography>
-                    </Paper>
-                </div>
-            );
-        }
         if (grabbedStatus && grabbedStatus.length) {
             return (
                 <div id="tweet-content" onScroll={this.handleScroll}>
@@ -167,4 +158,13 @@ TweetContainer.propTypes = {
     classes: PropTypes.object.isRequired,
 };
 
-export default withStyles(styles)(TweetContainer);
+const mapStateToProps = (state) =>{
+    console.info("STATE INFO FROM TWEET CONTAINER: ",state);
+    return { state : state.appDataReducer };
+
+};
+const mapDispatchToProps = {
+    fetchTweetsOnScroll,
+};
+const styledComponent = withStyles(styles)(TweetContainer);
+export default connect(mapStateToProps,mapDispatchToProps)(styledComponent);

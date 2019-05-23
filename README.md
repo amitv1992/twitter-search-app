@@ -1,6 +1,7 @@
 # twitter-search-app
-This application is made to demonstrate some advance javascript concepts like prototypal inheritance,generators,promises etc.
-while using Twit library as a middleware to make connection between app and the twitter API. 
+
+This app is created using React and Redux libraries while demonstrating advance javascript concepts like prototypal inheritance, generators, promises etc.
+It uses Twit library as a middleware to make connection between app and the twitter API. 
 
 It also uses another advance concept called '[React-Virtualized](https://github.com/bvaughn/react-virtualized)', which takes care of rendering a very large amount of dataset (list of tweets in our scenario)
 while giving same performance even on low-spec systems as on high-end systems by drastically cutting the DOM load time in user's browser.

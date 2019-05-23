@@ -1,11 +1,13 @@
 import React from 'react';
+import { connect } from "react-redux";
 import PropTypes from 'prop-types';
+import { modifySearchQuery } from "../actions";
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import InputBase from '@material-ui/core/InputBase';
-import {fade} from '@material-ui/core/styles/colorManipulator';
-import {withStyles} from '@material-ui/core/styles';
+import { fade } from '@material-ui/core/styles/colorManipulator';
+import { withStyles } from '@material-ui/core/styles';
 import SearchIcon from '@material-ui/icons/Search';
 
 const styles = theme => ({
@@ -70,13 +72,16 @@ const styles = theme => ({
 
 function updateSearchQuery(props, e) {
     if (e.key === 'Enter') {
-        props.callTwitterAPI(e.target.value);
+        let sanitizeUserInput = e.target.value.trim().toLowerCase();
+        if (sanitizeUserInput) {
+            props.modifySearchQuery(sanitizeUserInput);
+        }
     }
 }
 
 function homepageClick(props, e) {
     if (e.type === 'click') {
-        props.callTwitterAPI(props.userCity);
+        props.modifySearchQuery(props.state.appDataReducer.userCity);
     }
 }
 
@@ -114,4 +119,12 @@ SearchBar.propTypes = {
     classes: PropTypes.object.isRequired,
 };
 
-export default withStyles(styles)(SearchBar);
+const mapStateToProps = state => {
+    console.info("STATE INFO FROM SEARCH BAR : ", state);
+    return {state: state};
+};
+const mapDispatchToProps = {
+    modifySearchQuery,
+};
+const styledComponent = withStyles(styles)(SearchBar);
+export default connect(mapStateToProps, mapDispatchToProps)(styledComponent);

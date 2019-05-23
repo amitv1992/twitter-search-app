@@ -1,38 +1,37 @@
 import React, {PureComponent} from 'react';
-import "../stylesheets/styles.scss";
-import axios from 'axios';
+import { connect } from "react-redux";
+import Typography from '@material-ui/core/Typography';
+import Paper from '@material-ui/core/Paper';
 import {Hearts} from '@bit/mhnpd.react-loader-spinner.hearts';
 import {getRandomColor} from '@bit/joshk.jotils.get-random-color'
+import "../stylesheets/styles.scss";
 import SearchBar from "../components/SearchBar";
 import SearchIndicator from "./Tweet/SearchIndicator";
 import TweetContainer from "./TweetContainer";
-import Paper from '@material-ui/core/Paper';
-import Typography from '@material-ui/core/Typography';
-
-
-let apiKey = 'f750d586c2243a';
+import { fetchUserCoordinates, fetchUserLocation, fetchTweets, fetchTweetsOnScroll, resetSearchIndicator } from "../actions";
 
 class App extends PureComponent {
-    constructor(props) {
-        super(props);
-        this.state = {
-            searchTerm: '',
-            tweets: null,
-            isLoading: false,
-            latitude: null,
-            longitude: null,
-            errorMessage: '',
-            userCity: '',
-            searchIndicator: true,
-        };
-        this.resetCoordinates = this.resetCoordinates.bind(this)
-    }
-
     /**
      * This is a react lifecycle method, which gets trigger when app renders the UI first time.
      */
     componentDidMount() {
-        this.detectCoordinates();
+        this.props.fetchUserCoordinates();
+    }
+    componentWillReceiveProps(nextProps, nextContext) {
+        /**
+         * Logic to call LocationAPI
+         */
+        if (nextProps.state.latitude && nextProps.state.latitude !== this.props.state.latitude){
+            console.info("LocationAPI got called...");
+            this.props.fetchUserLocation(nextProps.state.latitude,nextProps.state.longitude)
+        }
+        /**
+         * Logic to call TwitterAPI and prevent multiple calls for same query
+         */
+        if (nextProps.state.searchTerm && nextProps.state.searchTerm !== this.props.state.searchTerm){
+            console.info("TwitterAPI got called...");
+            this.props.fetchTweets(nextProps.state.searchTerm);
+        }
     }
 
     /**
@@ -42,135 +41,19 @@ class App extends PureComponent {
      */
     * generateTweets() {
         let tweets = null;
-        yield fetch(`https://twit-be.herokuapp.com/megasearch/${this.state.searchTerm}`).then(res => res.json()).then(values => tweets = values).catch(error => {
-            console.log(error);
+        yield fetch(`https://twit-be.herokuapp.com/megasearch/${this.props.state.searchTerm}`).then(res => res.json()).then(values => tweets = values).catch(error => {
+            console.error(error);
         });
-        const obj1 = {...this.state.tweets};
-
-        if (tweets && tweets.statuses) {
-            for (let i = 0; i < tweets.statuses.length; i++) {
-                obj1.statuses.push(tweets.statuses[i])
-            }
-        }
-        yield this.setState({tweets: obj1, isLoading: false});
-    }
-
-    /**
-     * This method returns the position coordinates from the user agent (browser).
-     */
-    detectCoordinates() {
-        window.navigator.geolocation.getCurrentPosition((success, reject) => {
-            console.info("Found User geo position successfully ");
-            this.setState({
-                isLoading: true,
-                latitude: success.coords.latitude,
-                longitude: success.coords.longitude
-            }, () => this.detectCity())
-        }, (reject) => {
-            console.error("User denied geo position permission");
-            this.callTwitterAPI('world');
-            this.setState({
-                errorMessage: reject.message,
-            })
-        })
-    }
-
-    /**
-     * This method demonstrate the understanding of promises (ES6)
-     * It fetches user location detail from the found coordinates from the user agent (browser).
-     */
-    detectCity() {
-        let foundCity = '';
-        axios.get(`https://us1.locationiq.com/v1/reverse.php?key=${apiKey}&lat=${this.state.latitude}&lon=${this.state.longitude}&format=json`, {
-            async: true,
-            crossDomain: true,
-            method: "GET"
-        }).then(res => {
-            foundCity = res.data.address.city
-        })
-            .catch(() => {
-                foundCity = 'world'
-            })
-            .finally(() => this.setState({
-                userCity: foundCity,
-                searchTerm: foundCity,
-            }, () => this.callTwitterAPI(this.state.userCity)));
-    }
-
-    /**
-     * This method demonstrate the understanding for using async and await (ES8)
-     * It fetches user location detail from the found coordinates from the user agent (browser).
-     * @returns {Promise<void>}
-     */
-    async detectCity1() {
-        let foundCity = '';
-        try {
-            const response = await axios.get(`https://us1.locationiq.com/v1/reverse.php?key=${apiKey}&lat=${this.state.latitude}&lon=${this.state.longitude}&format=json`, {
-                async: true,
-                crossDomain: true,
-                method: "GET"
-            });
-            foundCity = response.data.address.city
-        } catch (e) {
-            foundCity = 'world'
-        } finally {
-            this.setState({
-                userCity: foundCity,
-            }, () => this.callTwitterAPI(this.state.userCity))
-        }
-
-    }
-
-    resetCoordinates() {
-        this.setState({
-            latitude: null,
-            longitude: null,
-        })
-    }
-
-    /**
-     * This method fetched the tweets from the twitter API using the keyword provided by the user or using the found user location.
-     * @param newValue
-     */
-    callTwitterAPI(newValue) {
-        //To rerender the tweet container on new query as virtualised lib, keep the previous scrolled position saved.
-        this.setState({
-            tweets: null,
-            isLoading: true,
-        }, () => {
-            if (newValue) {
-                fetch(`https://twit-be.herokuapp.com/megasearch/${newValue}`)
-                    .then(res => res.json())
-                    .then(tweets => {
-                        if (tweets.error) {
-                            this.setState({
-                                errorMessage: tweets.msg.message,
-                                isLoading: false
-                            })
-                        } else {
-                            this.setState({
-                                searchIndicator: true,
-                                searchTerm: newValue,
-                                tweets: tweets,
-                                isLoading: false
-                            })
-                        }
-                    })
-                    .catch(error => {
-                        console.log(error)
-                    });
-            }
-        })
+        yield this.props.fetchTweetsOnScroll(tweets);
     }
 
     renderSearchIndicator() {
-        if (this.state.searchIndicator) {
+        if(this.props.state.showSearchIndicator){
             setTimeout(() => {
-                this.setState({searchIndicator: false})
+                this.props.resetSearchIndicator();
             }, 5000);
-            return (<SearchIndicator searchedTerm={this.state.searchTerm} latitude={this.state.latitude}
-                                     longitude={this.state.longitude} resetCoordinates={this.resetCoordinates}/>)
-        } else {
+            return (<SearchIndicator />)
+        }else {
             return null
         }
     }
@@ -180,41 +63,64 @@ class App extends PureComponent {
      * @returns {*}
      */
     render() {
-        const {tweets, isLoading, userCity, errorMessage, searchTerm} = this.state;
+        const { tweets, showSearchIndicator, isLoading, apiErrorMessage, appErrorMessage } = this.props.state;
         return (
             <div className="parent">
-                <SearchBar userCity={userCity} callTwitterAPI={this.callTwitterAPI.bind(this)}/>
-                {this.renderSearchIndicator()}
+                <SearchBar/>
+                { showSearchIndicator && this.renderSearchIndicator() }
                 <div className="tweets-parent">
-                    {errorMessage &&
-                    <div style={{position: 'absolute', top: '40%', left: '30%', width: '550px', textAlign: 'center'}}>
-                        <Paper elevation={1}>
-                            <Typography variant="h5" component="h3">
-                                Network error occurred :
-                            </Typography>
-                            <Typography component="p">
-                                {errorMessage}
-                                {'\n Please try again after some time...'}
-                            </Typography>
-                        </Paper>
-                    </div>
+                    {apiErrorMessage &&
+                        <div style={{position: 'absolute', top: '40%', left: '30%', width: '550px', textAlign: 'center'}}>
+                            <Paper elevation={1}>
+                                <Typography variant="h5" component="h4">
+                                    {apiErrorMessage}
+                                    {appErrorMessage &&
+                                        <Paper elevation={0}>
+                                            <Typography component="p" style={{fontSize:"smaller"}}>
+                                                {appErrorMessage}
+                                            </Typography>
+                                            <Hearts
+                                                color={getRandomColor()}
+                                                height={150}
+                                                width={150}
+                                            />
+                                        </Paper>
+                                    }
+                                </Typography>
+                            </Paper>
+                        </div>
                     }
                     {isLoading &&
-                    <div style={{left: '43%', position: 'absolute'}}>
-                        <Hearts
-                            color={getRandomColor()}
-                            height={150}
-                            width={150}
-                        />
-                    </div>
+                        <div style={{left: '43%', position: 'absolute'}}>
+                            <Hearts
+                                color={getRandomColor()}
+                                height={150}
+                                width={150}
+                            />
+                        </div>
                     }
-                    {tweets && <TweetContainer isLoading={isLoading} tweets={tweets} errorMessage={errorMessage}
-                                               searchTerm={searchTerm}
-                                               generateTweets={this.generateTweets.bind(this)}/>}
+
+                    {tweets &&
+                        <TweetContainer generateTweets={this.generateTweets.bind(this)}/>
+                    }
                 </div>
             </div>
         );
     }
 }
 
-export default App;
+
+const mapStateToProps = (state) =>{
+    console.info("STATE INFO FROM APP COMPONENT: ",state);
+    return { state : state.appDataReducer };
+
+};
+
+const mapDispatchToProps = {
+    fetchUserCoordinates,
+    fetchUserLocation,
+    fetchTweets,
+    resetSearchIndicator,
+    fetchTweetsOnScroll,
+};
+export default connect(mapStateToProps,mapDispatchToProps)(App);
