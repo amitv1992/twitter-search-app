@@ -1,6 +1,8 @@
 import locationAPI,{ LOC_API_KEY } from '../apis/locationAPI';
 import twitterAPI from '../apis/twitterAPI';
 
+const defaultSearchTerm= 'world';
+
 // Action creators
 export function fetchUserCoordinates() {
     return (dispatch) => {
@@ -17,7 +19,7 @@ export function fetchUserCoordinates() {
                 type: 'FETCH_COORDINATES_ERROR',
                 payload: {
                     apiErrorMessage: reject.message,
-                    searchTerm: 'world',}
+                    searchTerm: defaultSearchTerm,}
             });
         });
     }
@@ -45,7 +47,7 @@ export const fetchUserLocation = (lat, long) => async dispatch => {
                 type: 'FETCH_LOCATION_ERROR',
                 payload: {
                     apiErrorMessage: error.response.data.error,
-                    searchTerm: 'world',
+                    searchTerm: defaultSearchTerm,
                 }
             })
         }else{
@@ -54,7 +56,7 @@ export const fetchUserLocation = (lat, long) => async dispatch => {
             type: 'FETCH_LOCATION_ERROR',
             payload: {
                 apiErrorMessage: error.message+ " occurred.",
-                searchTerm: 'world',
+                searchTerm: defaultSearchTerm,
                 }
             });
         }
