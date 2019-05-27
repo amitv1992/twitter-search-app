@@ -109,7 +109,7 @@ export const resetSearchIndicator = () => {
 export const modifySearchQuery = (searchTerm) => {
     return {
         type: 'MODIFY_SEARCHQUERY',
-        payload: {searchTerm: searchTerm}
+        payload: {searchTerm: searchTerm ? searchTerm : defaultSearchTerm}
     };
 };
 

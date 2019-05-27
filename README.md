@@ -6,7 +6,7 @@ It uses Twit library as a middleware to make connection between app and the twit
 It also uses another advance concept called '[React-Virtualized](https://github.com/bvaughn/react-virtualized)', which takes care of rendering a very large amount of dataset (list of tweets in our scenario)
 while giving same performance even on low-spec systems as on high-end systems by drastically cutting the DOM load time in user's browser.
 
-###For more details:
+#### For more details:</br>
 **Author**<br>
 Amit Varshney ([amit.varshney1@yahoo.co.in](mailto:amit.varshney1@yahoo.co.in))
 

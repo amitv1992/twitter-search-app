@@ -25,6 +25,7 @@ const appDataReducer = (state = initialState, action) => {
             return {
                 ...state,
                 apiErrorMessage: action.payload.apiErrorMessage,
+                appErrorMessage: "Now trying to load app with default search query",
                 searchTerm: action.payload.searchTerm,
             };
         case 'FETCH_LOCATION_ERROR':
